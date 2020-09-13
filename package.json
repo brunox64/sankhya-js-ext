@@ -5,7 +5,7 @@
   "version": "1.0.0",
   "publisher": "bruno-mota",
   "repository": {
-    "url": "https://git.sankhya.com.br/mota/sankhya-js-ext.git"
+    "url": "https://github.com/brunox64/sankhya-js-ext.git"
   },
   "engines": {
     "vscode": "^1.32.0"

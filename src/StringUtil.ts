@@ -1,7 +1,13 @@
 
+import JsBraketsSkipper from './JsBracketsSkipper';
+import JsCallSkipper from './JsCallSkipper';
 import JsCommentSkipper from './JsCommentSkipper';
+import JsStringSkipper from './JsStringSkipper';
+import StringSkipper from './StringSkipper';
 import Region from './Region';
 import RegionNav from './RegionNav';
+import Skipper from './Skipper';
+import SkipperChain from './SkipperChain';
 
 export default class StringUtil {
 
@@ -100,7 +106,7 @@ export default class StringUtil {
     
     public static getJsRegionString(source:string, index:number):Region|null {
         
-        var skiper = new JsCommentSkipper();
+        var skipper = new JsCommentSkipper();
 		
 		var start = -1;
 		
@@ -115,8 +121,8 @@ export default class StringUtil {
 			part = source.charAt(index);
 			
 			if (start == -1 && part != delim1 && part != delim2) {
-				if (skiper.skip(source, index)) {
-					index = skiper.nextIndex();
+				if (skipper.skip(source, index)) {
+					index = skipper.nextIndex();
 					index--;
 					continue;
 				}
@@ -138,5 +144,101 @@ export default class StringUtil {
 		}
 
 		return null;
-    }
+	}
+	
+	public static getJsRegion(source:string, index:number, open:string, close:string, skipper?:Skipper): Region|null {
+		if (open == close) {
+			throw new Error("open e close não podem ser iguais");
+		}
+		
+		if (open == '\'' || close == '\'') {
+			throw new Error("open ou close não pode ser aspas simples");
+		}
+		
+		if (open == '"' || close == '"') {
+			throw new Error("open ou close não pode ser aspas duplas");
+		}
+
+		if (open.length > 1 || close.length > 1) {
+			throw new Error("open ou close não pode ser maior que 1");
+		}
+
+		var skipperChain = new SkipperChain();
+		skipperChain.addSkipper(new JsCommentSkipper());
+		skipperChain.addSkipper(new JsStringSkipper());
+
+		if (skipper != null) {
+			skipperChain.addSkipper(skipper);
+		}
+
+		skipper = skipperChain;
+		
+		var count = 0;
+		var start = -1;
+		var part;
+		
+		for (; index < source.length; index++) {
+			part = source.charAt(index);
+			
+			if (skipper.skip(source, index)) {
+				index = skipper.nextIndex();
+				index--;
+				continue;
+			}
+			
+			if (part == open || part == close) {
+				if (part == open) {
+					if (start == -1) start = index;
+					count++;
+				} else if (start > -1) {
+					count--;
+					
+					if (count == 0) return new Region(start, index + 1);
+				}
+			}
+		}
+
+		return null;
+	}
+
+	public static getJsCallArgs(source:string, index:number):string[] {
+		var reg = StringUtil.getJsRegion(source, index, '(', ')');
+		var args = new Array<string>();
+
+		if (reg == null) {
+			return args;
+		}
+
+		var regEx = reg;
+		var regIn = new Region(regEx.start(), regEx.end());
+		regIn.add(-1);
+
+		var skipper = new SkipperChain();
+		skipper.addSkipper(new JsCommentSkipper());
+		skipper.addSkipper(new JsStringSkipper());
+		skipper.addSkipper(new JsBraketsSkipper());
+		skipper.addSkipper(new JsCallSkipper());
+
+		var strSkipper = new StringSkipper(source, regIn);
+		var strSkipped = strSkipper.skip(skipper);
+		var mapVirgula = new Array<number>();
+
+		for (var idx of strSkipped) {
+			if (source.charAt(idx) == ',') {
+				mapVirgula.push(idx);
+			}
+		}
+
+		mapVirgula.push(regIn.end());
+
+		var start = regIn.start();
+		var end = -1;
+		for (var idx of mapVirgula) {
+			end = idx;
+			args.push(source.substring(start, end));
+			start = end+1;
+		}
+
+		return args;
+	}
 }

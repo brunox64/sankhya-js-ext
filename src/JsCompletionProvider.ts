@@ -1,6 +1,9 @@
 'use strict';
 import * as vscode from 'vscode';
 import fs from 'fs';
+import StringUtil from './StringUtil';
+import TreeVisitor from './TreeVisitor';
+import WalkFileTree from './WalkFileTree';
 
 export default class JsCompletionProvider implements vscode.CompletionItemProvider {
     
@@ -66,15 +69,20 @@ class CompletionTagListTask {
             walker.walkFilesTree();
 
             var files = visitor.files;
-            var directives = new Array<string>();
+            var directives:string[] = [];
 
             files.forEach(file => {
                 var regexDirective = /\.directive\s*\(\s*['"]([^'"]+)['"]/g;
                 var content = fs.readFileSync(file).toString('utf-8');
                 var match = null;
+                var args = null;
 
                 while ((match = regexDirective.exec(content)) != null) {
-                    directives.push(match[1]);
+                    args = StringUtil.getJsCallArgs(content, match.index);
+
+                    if (args.length == 2) {
+                        console.log(args[1]);
+                    }
                 }
             });
 
@@ -83,53 +91,5 @@ class CompletionTagListTask {
     }
 }
 
-interface FileVisitor {
-    visit(file:string):void
-}
 
-class TreeVisitor implements FileVisitor {
-    public files:Array<string> = [];
 
-    public visit(file:string):void {
-        if (file.substring(file.length-3,file.length) == '.js') {
-            this.files.push(file);
-        }
-    }
-}
-
-class WalkFileTree {
-    private startPath:string;
-    private visitor:FileVisitor;
-
-    public constructor(startPath:string, visitor:FileVisitor) {
-        this.startPath = startPath;
-        this.visitor = visitor;
-    }
-
-    public walkFilesTree():void {
-        this.visitTree(this.startPath);
-    }
-
-    private visitTree(path:string):void {
-
-        var children = fs.readdirSync(path);
-
-        for (var i = 0; i < children.length; i++) {
-            var child = children[i];
-
-            if (child == '.' || child == '..') {
-                continue;
-            } else {
-                child = path + '/' + child;
-
-                var stat = fs.statSync(child);
-
-                if (stat.isFile()) {
-                    this.visitor.visit(child);
-                } else if (stat.isDirectory()) {
-                    this.visitTree(child);
-                }
-            }
-        }
-    }
-}

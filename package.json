@@ -1,0 +1,48 @@
+{
+  "name": "sankhya-js-ext",
+  "displayName": "sankhya-js-ext",
+  "description": "sankhya-js-ext",
+  "version": "1.0.0",
+  "publisher": "bruno-mota",
+  "repository": {
+    "url": "https://git.sankhya.com.br/mota/sankhya-js-ext.git"
+  },
+  "engines": {
+    "vscode": "^1.32.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "main": "./dist/extension.js",
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./src --outDir ./dist",
+    "lint": "eslint . --ext .ts,.tsx",
+    "watch": "tsc -watch -p ./src --outDir ./dist"
+  },
+  "keywords": [
+    "javascript",
+    "sankhya-js"
+  ],
+  "author": "Mota",
+  "license": "ISC",
+  "activationEvents": [
+    "onLanguage:html"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "html",
+        "extensions": [
+          ".html"
+        ]
+      }
+    ]
+  },
+  "devDependencies": {
+    "typescript": "^4.0.2",
+    "@types/vscode": "^1.48.0",
+    "tsc": "^1.20150623.0",
+    "vsce": "^1.79.5"
+  }
+}

@@ -1,5 +1,5 @@
 
-import JsBraketsSkipper from './JsBracketsSkipper';
+import JsArraySkipper from './JsArraySkipper';
 import JsCallSkipper from './JsCallSkipper';
 import JsCommentSkipper from './JsCommentSkipper';
 import JsStringSkipper from './JsStringSkipper';
@@ -8,8 +8,25 @@ import Region from './Region';
 import RegionNav from './RegionNav';
 import Skipper from './Skipper';
 import SkipperChain from './SkipperChain';
+import JsObjectSkipper from './JsObjectSkipper';
 
 export default class StringUtil {
+
+	public static camelToHtml(str:string):string {
+		var html = '';
+		var part = null;
+		for (var index = 0; index < str.length; index++) {
+			part = str.charAt(index);
+
+			if (part.toUpperCase() == part) {
+				html += '-';
+			}
+
+			html += part.toLowerCase();
+		}
+
+		return html;
+	}
 
     public static format(str:string, args:Array<any>):string {
     
@@ -201,9 +218,9 @@ export default class StringUtil {
 		return null;
 	}
 
-	public static getJsCallArgs(source:string, index:number):string[] {
-		var reg = StringUtil.getJsRegion(source, index, '(', ')');
+	public static getJsCallArgs(source:string, index:number, open:string, close:string):string[] {
 		var args = new Array<string>();
+		var reg = StringUtil.getJsRegion(source, index, open, close);
 
 		if (reg == null) {
 			return args;
@@ -216,8 +233,9 @@ export default class StringUtil {
 		var skipper = new SkipperChain();
 		skipper.addSkipper(new JsCommentSkipper());
 		skipper.addSkipper(new JsStringSkipper());
-		skipper.addSkipper(new JsBraketsSkipper());
+		skipper.addSkipper(new JsArraySkipper());
 		skipper.addSkipper(new JsCallSkipper());
+		skipper.addSkipper(new JsObjectSkipper());
 
 		var strSkipper = new StringSkipper(source, regIn);
 		var strSkipped = strSkipper.skip(skipper);

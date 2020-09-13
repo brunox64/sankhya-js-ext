@@ -1,7 +1,7 @@
 import Skipper from "./Skipper";
 import StringUtil from "./StringUtil";
 
-export default class JsBraketsSkipper implements Skipper {
+export default class JsArraySkipper implements Skipper {
     private next:number =-1;
 
     public skip(source:string, index:number):boolean {

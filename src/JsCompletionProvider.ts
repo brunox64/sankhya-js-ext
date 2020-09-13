@@ -1,14 +1,13 @@
 'use strict';
 import * as vscode from 'vscode';
-import fs from 'fs';
-import StringUtil from './StringUtil';
-import TreeVisitor from './TreeVisitor';
-import WalkFileTree from './WalkFileTree';
+import CompletionTagListTask from './CompletionTagListTask';
+import TagInfo from './TagInfo';
 
 export default class JsCompletionProvider implements vscode.CompletionItemProvider {
     
-    private tagByName:Map<String,TagInfo>;
+    private tagByName:Map<string,TagInfo>;
     private taskTags:CompletionTagListTask;
+    private started:boolean = false;
 
     public constructor(){
         this.taskTags = new CompletionTagListTask();
@@ -20,76 +19,35 @@ export default class JsCompletionProvider implements vscode.CompletionItemProvid
         position: vscode.Position, 
         token: vscode.CancellationToken, 
         context:vscode.CompletionContext): vscode.ProviderResult<vscode.CompletionList<vscode.CompletionItem>> {
+            
+            var self = this;
 
-            this.taskTags.run(this.tagByName);
+            if (!this.started) {
+                this.started = true;
+                self.taskTags.run(self.tagByName);
+            }
 
             var completionList = new vscode.CompletionList(new Array<vscode.CompletionItem>());
-            var item = new vscode.CompletionItem('sk-dataset', vscode.CompletionItemKind.Text);
-            
-            completionList.items.push(item);
+
+            this.tagByName.forEach(tag => {
+                var item = new vscode.CompletionItem(tag.name, vscode.CompletionItemKind.Property);
+                
+                var doc = 'Atributos:\n';
+                for (var attr of tag.attributes) {
+                    doc += attr.name+'="'+attr.value+'"\n';
+                }
+
+                item.documentation = doc;
+
+                completionList.items.push(item);
+            });
+
             completionList.isIncomplete = false;
 
             return completionList;
     }
 }
 
-class TagInfo {
-    public constructor(
-        public name:string,
-        public attributes:Array<string>
-    ) {}
-}
-
-class CompletionTagListTask {
-
-    public run(tagByName:Map<String,TagInfo>):void {
-
-        var sankhyaJsFolder = null;
-
-        if (vscode.workspace.workspaceFile) {
-            sankhyaJsFolder = vscode.workspace.workspaceFile;
-        } else if (vscode.workspace.workspaceFolders) {
-            for (var folder of vscode.workspace.workspaceFolders) {
-                var childFolder = folder.uri.with({path: folder.uri.path + '/sankhya-js' });
-                var childPath = childFolder.path;
-
-                if (fs.existsSync(childPath) && fs.statSync(childPath).isDirectory()) {
-                    sankhyaJsFolder = childFolder;
-                    break;
-                }
-            }
-        }
-
-        if (sankhyaJsFolder != null && fs.existsSync(sankhyaJsFolder.fsPath) && fs.statSync(sankhyaJsFolder.fsPath).isDirectory()) {
-            var dirSankhyajs = sankhyaJsFolder.fsPath;
-            var dirSrcComponents = dirSankhyajs + '/src';
-
-            var visitor = new TreeVisitor();
-            var walker = new WalkFileTree(dirSrcComponents, visitor);
-            walker.walkFilesTree();
-
-            var files = visitor.files;
-            var directives:string[] = [];
-
-            files.forEach(file => {
-                var regexDirective = /\.directive\s*\(\s*['"]([^'"]+)['"]/g;
-                var content = fs.readFileSync(file).toString('utf-8');
-                var match = null;
-                var args = null;
-
-                while ((match = regexDirective.exec(content)) != null) {
-                    args = StringUtil.getJsCallArgs(content, match.index);
-
-                    if (args.length == 2) {
-                        console.log(args[1]);
-                    }
-                }
-            });
-
-            
-        }
-    }
-}
 
 
 

@@ -42,10 +42,7 @@ export default class CompletionTagListTask {
 
             var hnd = setInterval(() => {
                 if (files.length > 0) {
-                    var file = files.shift();
-                    if (file != null) {
-                        self.collectDirectives(file);
-                    }
+                    self.collectDirectives(files.shift()!);
                 } else {
                     clearInterval(hnd);
                 }

@@ -8,7 +8,7 @@
     "url": "https://github.com/brunox64/sankhya-js-ext.git"
   },
   "engines": {
-    "vscode": "^1.32.0"
+    "vscode": "^1.48.0"
   },
   "categories": [
     "Other"

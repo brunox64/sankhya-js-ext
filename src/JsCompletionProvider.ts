@@ -66,15 +66,13 @@ export default class JsCompletionProvider implements vscode.CompletionItemProvid
                         }
 
                         var skipper = new JsStringSkipper();
-                        var strSkipper = new StringSkipper(content, new Region(0, content.length));
+                        var strSkipper = new StringSkipper(content, new Region(matchTag!.index, content.length));
                         var strSkipped = strSkipper.skip(skipper);
 
                         for (var index of strSkipped) {
-                            if (index >= matchTag!.index) {
-                                if (content.charAt(index) == '>') {
-                                    tagLocalizada = false;
-                                    break;
-                                }
+                            if (content.charAt(index) == '>' || content.charAt(index) == '"') {
+                                tagLocalizada = false;
+                                break;
                             }
                         }
                     }

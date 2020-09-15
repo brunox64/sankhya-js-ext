@@ -13,41 +13,43 @@ export default class CompletionTagListTask {
     public run(tagByName:Map<string,TagInfo>):void {
         this.tagByName = tagByName;
 
-        var sankhyaJsFolder = null;
-
-        if (vscode.workspace.workspaceFile) {
-            sankhyaJsFolder = vscode.workspace.workspaceFile;
-        } else if (vscode.workspace.workspaceFolders) {
+        if (vscode.workspace.workspaceFolders) {
             for (var folder of vscode.workspace.workspaceFolders) {
-                var childFolder = folder.uri.with({path: folder.uri.path + '/sankhya-js' });
-                var childPath = childFolder.path;
-
-                if (fs.existsSync(childPath) && fs.statSync(childPath).isDirectory()) {
-                    sankhyaJsFolder = childFolder;
-                    break;
+                if (fs.existsSync(folder.uri.fsPath) && fs.statSync(folder.uri.fsPath).isDirectory()) {
+                    this.walkFilesTree(folder.uri);
                 }
             }
         }
+        
+        if (vscode.workspace.workspaceFile) {
+            var dirWork = vscode.workspace.workspaceFile;
 
-        if (sankhyaJsFolder != null && fs.existsSync(sankhyaJsFolder.fsPath) && fs.statSync(sankhyaJsFolder.fsPath).isDirectory()) {
-            var dirSankhyajs = sankhyaJsFolder.fsPath;
-            var dirSrcComponents = dirSankhyajs + '/src';
-
-            var visitor = new TreeVisitor();
-            var walker = new WalkFileTree(dirSrcComponents, visitor);
-            walker.walkFilesTree();
-
-            var files = visitor.files;
-            var self = this;
-
-            var hnd = setInterval(() => {
-                if (files.length > 0) {
-                    self.collectDirectives(files.shift()!);
-                } else {
-                    clearInterval(hnd);
-                }
-            }, 10);
+            if (fs.existsSync(dirWork.fsPath) && fs.statSync(dirWork.fsPath).isDirectory()) {
+                this.walkFilesTree(dirWork);
+            }
         }
+    }
+
+    private walkFilesTree(folder:vscode.Uri) {
+
+        var visitor = new TreeVisitor();
+        var walker = new WalkFileTree(folder.fsPath, visitor);
+        walker.walkFilesTree();
+
+        var files = visitor.files;
+        var self = this;
+
+        for (var file of files) {
+            self.collectDirectives(file);
+        }
+
+        // var hnd = setInterval(() => {
+        //     if (files.length > 0) {
+        //         self.collectDirectives(files.shift()!);
+        //     } else {
+        //         clearInterval(hnd);
+        //     }
+        // }, 10);
     }
 
     private collectDirectives(file:string):void {

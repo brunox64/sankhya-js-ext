@@ -27,7 +27,8 @@
   "author": "Mota",
   "license": "ISC",
   "activationEvents": [
-    "onLanguage:html"
+    "onLanguage:html",
+    "onLanguage:javascript"
   ],
   "contributes": {
     "languages": [
@@ -35,6 +36,12 @@
         "id": "html",
         "extensions": [
           ".html"
+        ]
+      },
+      {
+        "id": "javascript",
+        "extensions": [
+          ".js"
         ]
       }
     ]

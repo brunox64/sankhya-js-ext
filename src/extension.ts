@@ -2,7 +2,7 @@
 import * as vscode from 'vscode';
 import AsDefinitionProvider from './AsDefinitionProvider';
 import AsDocumentSymbolProvider from './AsDocumentSymbolProvider';
-import JsCompletionProvider from './JsCompletionProvider';
+import HtmlCompletionProvider from './HtmlCompletionProvider';
 import JsDefinitionProvider from './JsDefinitionProvider';
 import JsDocumentSymbolProvider from './JsDocumentSymbolProvider';
 import Region from './Region';
@@ -12,7 +12,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     context.subscriptions.push(
         vscode.languages.registerCompletionItemProvider(
-            { language: "html" }, new JsCompletionProvider(), '<', ' '
+            { language: "html" }, new HtmlCompletionProvider(), '<', ' '
         )
     );
 

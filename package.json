@@ -27,7 +27,8 @@
   "license": "ISC",
   "activationEvents": [
     "onLanguage:html",
-    "onLanguage:javascript"
+    "onLanguage:javascript",
+    "onLanguage:actionscript"
   ],
   "contributes": {
     "languages": [
@@ -41,6 +42,13 @@
         "id": "javascript",
         "extensions": [
           ".js"
+        ]
+      },
+      {
+        "id": "actionscript",
+        "extensions": [
+          ".mxml",
+          ".as"
         ]
       }
     ]

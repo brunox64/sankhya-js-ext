@@ -1,7 +1,7 @@
 {
-  "name": "sankhya-js-ext",
-  "displayName": "sankhya-js-ext",
-  "description": "sankhya-js-ext",
+  "name": "sankhya-js",
+  "displayName": "sankhya-js",
+  "description": "sankhya-js",
   "version": "1.0.0",
   "publisher": "bruno-mota",
   "repository": {
@@ -21,7 +21,6 @@
     "watch": "tsc -watch -p ./src --outDir ./dist"
   },
   "keywords": [
-    "javascript",
     "sankhya-js"
   ],
   "author": "Mota",

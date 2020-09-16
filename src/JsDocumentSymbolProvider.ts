@@ -15,9 +15,9 @@ export default class JsDocumentSymbolProvider implements vscode.DocumentSymbolPr
                 for (var i = 0; i < document.lineCount; i++) {
                     var line = document.lineAt(i).text;
 
-                    var regexStart = /^[\s\t]+(var|let)\s+self\s*=\s*this/g;
-                    var regexEnd = /^[\s\t]+function/g;
-                    var regexVariable = /^[\s\t]+self\.([a-zA-Z$_][a-zA-Z0-9_$]*)/g;
+                    var regexStart = /^\s*(var|let|const)\s+self\s*=\s*this/g;
+                    var regexEnd = /^\s*function/g;
+                    var regexVariable = /^\s*self\s*\.\s*([a-zA-Z\$_][a-zA-Z0-9_\$]*)/g;
 
                     if (!collecting) {
                         if (regexStart.test(line)) {
@@ -40,6 +40,24 @@ export default class JsDocumentSymbolProvider implements vscode.DocumentSymbolPr
     
                             symbols.push(new vscode.SymbolInformation(varName, vscode.SymbolKind.Variable, 'self', new vscode.Location(document.uri, range)));
                         }
+                    }
+                }
+
+
+                for (var i = 0; i < document.lineCount; i++) {
+                    var line = document.lineAt(i).text;
+                    var regexVariable = /^\s*\$scope\s*\.\s*([a-zA-Z\$_][a-zA-Z0-9_\$]*)\s*=/g;
+                    var matchVariable:RegExpExecArray|null = null;
+
+                    while ((matchVariable = regexVariable.exec(line)) != null) {
+                        var varName = matchVariable[1];
+                        var varIndex = line.indexOf(varName, matchVariable.index);
+
+                        var start = new vscode.Position(i, varIndex);
+                        var end = new vscode.Position(i, varIndex + varName.length);
+                        var range = new vscode.Range(start, end);
+
+                        symbols.push(new vscode.SymbolInformation(varName, vscode.SymbolKind.Variable, '$scope', new vscode.Location(document.uri, range)));
                     }
                 }
 

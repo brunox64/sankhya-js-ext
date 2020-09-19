@@ -10,13 +10,13 @@ export default class JsDiagnosticScanner {
     
     public scan(document:vscode.TextDocument, diagnosticColl:vscode.DiagnosticCollection):void {
         
-        if (document.languageId == 'javascript' && document.uri.fsPath.endsWith('.controller.js')) {
+        if (document.languageId == 'javascript' && document.uri.fsPath.endsWith('.js')) {
 
             var excludedWords:string[] = [
                 'if','else','case','switch','true','false','while','for','in','of','instanceof','type','var','let','const','break','continue',
                 'throw','function','new','undefined','null','return','async','await','delete','this','isNaN',
                 'Date','Array','Object','String','Number','Boolean','JSON','setInterval','setTimeout','window','document',
-                'parseInt','parseFloat','$','jQuery','angular','default','Error','Promise','console'
+                'parseInt','parseFloat','$','jQuery','angular','default','Error','Promise','console','RegExp','Math'
             ];
 
             var collection = new Array<vscode.Diagnostic>();

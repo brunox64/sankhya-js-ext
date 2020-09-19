@@ -37,7 +37,7 @@ export default class HtmlDirectivesScanner {
     private collectDirectives(file:string):void {
         var tagByName = this.tagByName;
 
-        var regexDirective = /\.directive\s*\(\s*['"]([^'"]+)['"]/g;
+        var regexDirective = /\.\s*directive\s*\(\s*['"]([^'"]+)['"]/g;
         var content = fs.readFileSync(file).toString('utf-8');
         var match = null;
         var args = null;

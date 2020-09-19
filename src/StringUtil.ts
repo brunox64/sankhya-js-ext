@@ -15,11 +15,24 @@ export default class StringUtil {
 	public static camelToHtml(str:string):string {
 		var html = '';
 		var part = null;
+		var isUpper = false;
 		for (var index = 0; index < str.length; index++) {
 			part = str.charAt(index);
 
 			if (part.toUpperCase() == part) {
-				html += '-';
+				if (!isUpper){
+					html += '-';
+				} else {
+					if (index+1 < str.length && str.charAt(index+1) != str.charAt(index+1).toUpperCase()) {
+						html += part.toLowerCase();
+						html += '-';
+						isUpper = true;
+						continue;
+					}
+				}
+				isUpper = true;
+			} else {
+				isUpper = false;
 			}
 
 			html += part.toLowerCase();

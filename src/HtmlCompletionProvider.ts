@@ -1,6 +1,6 @@
 'use strict';
 import * as vscode from 'vscode';
-import CompletionTagListTask from './CompletionTagListTask';
+import CompletionTagListTask from './DirectivesScanner';
 import JsStringSkipper from './JsStringSkipper';
 import Region from './Region';
 import StringSkipper from './StringSkipper';
@@ -9,14 +9,9 @@ import TagInfo from './TagInfo';
 
 export default class HtmlCompletionProvider implements vscode.CompletionItemProvider {
     
-    private tagByName:Map<string,TagInfo>;
-    private taskTags:CompletionTagListTask;
-    private started:boolean = false;
-
-    public constructor(){
-        this.taskTags = new CompletionTagListTask();
-        this.tagByName = new Map();
-    }
+    public constructor(
+        private tagByName:Map<string,TagInfo>
+    ){}
 
     public provideCompletionItems(
         document: vscode.TextDocument, 
@@ -25,11 +20,6 @@ export default class HtmlCompletionProvider implements vscode.CompletionItemProv
         context:vscode.CompletionContext): vscode.ProviderResult<vscode.CompletionList<vscode.CompletionItem>> {
             
             var self = this;
-
-            if (!self.started) {
-                self.started = true;
-                self.taskTags.run(self.tagByName);
-            }
 
             return new Promise((resolve, reject) => {
                 

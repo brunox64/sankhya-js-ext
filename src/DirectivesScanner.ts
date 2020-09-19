@@ -7,26 +7,16 @@ import StringUtil from "./StringUtil";
 import Region from "./Region";
 import TagAttribute from "./TagAttribute";
 
-export default class CompletionTagListTask {
-    private tagByName!:Map<string,TagInfo>;
+export default class DirectivesScanner {
+    public tagByName:Map<string,TagInfo> = new Map();
 
-    public run(tagByName:Map<string,TagInfo>):void {
-        this.tagByName = tagByName;
+    public scanFolder(folder:vscode.Uri):void {
+        this.walkFilesTree(folder);
+    }
 
-        if (vscode.workspace.workspaceFolders) {
-            for (var folder of vscode.workspace.workspaceFolders) {
-                if (fs.existsSync(folder.uri.fsPath) && fs.statSync(folder.uri.fsPath).isDirectory()) {
-                    this.walkFilesTree(folder.uri);
-                }
-            }
-        }
-        
-        if (vscode.workspace.workspaceFile) {
-            var dirWork = vscode.workspace.workspaceFile;
-
-            if (fs.existsSync(dirWork.fsPath) && fs.statSync(dirWork.fsPath).isDirectory()) {
-                this.walkFilesTree(dirWork);
-            }
+    public scanFile(file:vscode.Uri):void {
+        if (file.fsPath.endsWith('.js')) {
+            this.collectDirectives(file.fsPath);
         }
     }
 
@@ -42,14 +32,6 @@ export default class CompletionTagListTask {
         for (var file of files) {
             self.collectDirectives(file);
         }
-
-        // var hnd = setInterval(() => {
-        //     if (files.length > 0) {
-        //         self.collectDirectives(files.shift()!);
-        //     } else {
-        //         clearInterval(hnd);
-        //     }
-        // }, 10);
     }
 
     private collectDirectives(file:string):void {

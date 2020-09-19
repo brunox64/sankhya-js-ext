@@ -1,6 +1,6 @@
 'use strict';
 import * as vscode from 'vscode';
-import CompletionTagListTask from './DirectivesScanner';
+import CompletionTagListTask from './HtmlDirectivesScanner';
 import JsStringSkipper from './JsStringSkipper';
 import Region from './Region';
 import StringSkipper from './StringSkipper';

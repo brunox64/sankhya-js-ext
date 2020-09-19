@@ -26,6 +26,7 @@
   "author": "Mota",
   "license": "ISC",
   "activationEvents": [
+    "onStartupFinished",
     "onLanguage:html",
     "onLanguage:javascript",
     "onLanguage:actionscript"

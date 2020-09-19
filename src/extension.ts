@@ -1,20 +1,20 @@
 'use strict';
+import fs from 'fs';
 import * as vscode from 'vscode';
 import AsDefinitionProvider from './AsDefinitionProvider';
 import AsDocumentSymbolProvider from './AsDocumentSymbolProvider';
 import HtmlCompletionProvider from './HtmlCompletionProvider';
+import HtmlDirectivesScanner from './HtmlDirectivesScanner';
 import JsCompletionProvider from './JsCompletionProvider';
 import JsDefinitionProvider from './JsDefinitionProvider';
 import JsDiagnosticScanner from './JsDiagnosticScanner';
 import JsDocumentSymbolProvider from './JsDocumentSymbolProvider';
-import fs from 'fs';
-import DirectivesScanner from './DirectivesScanner';
 
 export function activate(context: vscode.ExtensionContext) {
 
     var diagnosticColl = vscode.languages.createDiagnosticCollection('javascript');
     var jsDiagnosticScanner = new JsDiagnosticScanner();
-    var directivesScanner = new DirectivesScanner();
+    var directivesScanner = new HtmlDirectivesScanner();
 
     context.subscriptions.push(
         vscode.languages.registerCompletionItemProvider(
@@ -52,14 +52,18 @@ export function activate(context: vscode.ExtensionContext) {
         )
     );
 
+    vscode.workspace.onDidOpenTextDocument(event => {
+        directivesScanner.scanFile(event.uri);
+        jsDiagnosticScanner.scan(event, diagnosticColl);
+    });
 
     vscode.workspace.onDidChangeTextDocument(event => {
-        jsDiagnosticScanner.scan(event, diagnosticColl);
         directivesScanner.scanFile(event.document.uri);
+        jsDiagnosticScanner.scan(event.document, diagnosticColl);
     });
 
     vscode.workspace.onWillDeleteFiles(event => {
-        var scanner = new DirectivesScanner();
+        var scanner = new HtmlDirectivesScanner();
 
         for (var file of event.files) {
             scanner.scanFile(file);
@@ -86,6 +90,10 @@ export function activate(context: vscode.ExtensionContext) {
             if (fs.existsSync(dirWork.fsPath) && fs.statSync(dirWork.fsPath).isDirectory()) {
                 directivesScanner.scanFolder(dirWork);
             }
+        }
+
+        for (var document of vscode.workspace.textDocuments) {
+            jsDiagnosticScanner.scan(document, diagnosticColl);
         }
     },1000);
 }

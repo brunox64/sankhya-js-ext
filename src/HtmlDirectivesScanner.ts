@@ -7,7 +7,7 @@ import StringUtil from "./StringUtil";
 import Region from "./Region";
 import TagAttribute from "./TagAttribute";
 
-export default class DirectivesScanner {
+export default class HtmlDirectivesScanner {
     public tagByName:Map<string,TagInfo> = new Map();
 
     public scanFolder(folder:vscode.Uri):void {

@@ -8,8 +8,7 @@ import StringUtil from './StringUtil';
 
 export default class JsDiagnosticScanner {
     
-    public scan(event:vscode.TextDocumentChangeEvent, diagnosticColl:vscode.DiagnosticCollection):void {
-        var document = event.document;
+    public scan(document:vscode.TextDocument, diagnosticColl:vscode.DiagnosticCollection):void {
         
         if (document.languageId == 'javascript' && document.uri.fsPath.endsWith('.controller.js')) {
 

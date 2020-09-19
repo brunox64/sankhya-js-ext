@@ -14,10 +14,10 @@ export default class JsDiagnosticScanner {
         if (document.languageId == 'javascript' && document.uri.fsPath.endsWith('.controller.js')) {
 
             var excludedWords:string[] = [
-                'if','else','case','switch','true','false','while','for','var','let','const','break','continue',
+                'if','else','case','switch','true','false','while','for','in','of','instanceof','type','var','let','const','break','continue',
                 'throw','function','new','undefined','null','return','async','await','delete','this','isNaN',
                 'Date','Array','Object','String','Number','Boolean','JSON','setInterval','setTimeout','window','document',
-                'parseInt','parseFloat','$','jQuery','angular'
+                'parseInt','parseFloat','$','jQuery','angular','default','Error','Promise','console'
             ];
 
             var collection = new Array<vscode.Diagnostic>();
@@ -220,7 +220,7 @@ export default class JsDiagnosticScanner {
                                     }
 
                                     // extrair arrow functions arguments
-                                    var regexArrow = /[\)a-zA-Z0-9\$_]\s*=>/g;
+                                    var regexArrow = /\)\s*=>/g;
                                     var regArrowArgs = StringUtil.getJsRegion(fnContent, 0, '(', ')');
                                     while (regArrowArgs != null) {
                                         
@@ -274,60 +274,80 @@ export default class JsDiagnosticScanner {
 
 
                                     // avaliar todas as referencias
-                                    var regexRefVar = /[\r\n\+\-\*/&|;\?:=\(,\[\{][\t ]*([a-zA-Z\$_][a-zA-Z0-9_\$]*)(\s*:)?/g;
+                                    var regexRefVar = /[^a-zA-Z0-9\$_\.]\s*([a-zA-Z\$_][a-zA-Z0-9_\$]*)\s*[^a-zA-Z0-9\$_]/g;
                                     var matchRefVar:RegExpExecArray|null = null;
                                     while ((matchRefVar = regexRefVar.exec(fnContent)) != null) {
                                         
-                                        if (fnStrSkipped.indexOf(matchRefVar.index) == -1) {
+                                        var pularRefVar = false;
+                                        for (var idx = matchRefVar.index; idx < matchRefVar.index + matchRefVar[0].length; idx++) {
+                                            if (fnStrSkipped.indexOf(idx) == -1) {
+                                                pularRefVar = true;
+
+                                                idx++;
+                                                regexRefVar.lastIndex = idx;
+                                                while (regexRefVar.lastIndex < fnContent.length && fnStrSkipped.indexOf(regexRefVar.lastIndex) == -1) {
+                                                    regexRefVar.lastIndex++;
+                                                }
+
+                                                break;
+                                            }
+                                        }
+                                        if (pularRefVar) {
                                             continue;
                                         }
+
+                                        var isValidRef = true;
 
                                         if ((matchRefVar[0].startsWith(',') 
                                             || matchRefVar[0].startsWith('\r') 
                                             || matchRefVar[0].startsWith('\n')
                                             || matchRefVar[0].startsWith('{')) 
                                             && matchRefVar[0].endsWith(':')) {
-                                            continue;
+                                                isValidRef = false;
                                         }
 
                                         var varName = matchRefVar[1];
                                         var varIndex = matchRefVar.index + matchRefVar[0].indexOf(varName);
 
-                                        if (excludedWords.indexOf(varName) > -1) {
-                                            continue;
+                                        if (isValidRef && excludedWords.indexOf(varName) > -1) {
+                                            isValidRef = false;
                                         }
 
-                                        // tentar achar essa var local e depois global
-                                        var found = false;
+                                        if (isValidRef) {
+                                            // tentar achar essa var local e depois global
+                                            var found = false;
 
-                                        for (var idx = 0; idx < variaveisLocais.length; idx++) {
-                                            if (variaveisLocais[idx] == varName && indexVarLocais[idx] < varIndex) {
-                                                found = true;
-                                                break;
+                                            for (var idx = 0; idx < variaveisLocais.length; idx++) {
+                                                if (variaveisLocais[idx] == varName && indexVarLocais[idx] <= varIndex) {
+                                                    found = true;
+                                                    break;
+                                                }
+                                            }
+
+                                            for (var idx = 0; idx < variaveisGlobais.length; idx++) {
+                                                if (variaveisGlobais[idx] == varName) {
+                                                    found = true;
+                                                    break;
+                                                }
+                                            }
+
+                                            if (!found) {
+                                                var region = new Region(varIndex, varIndex);
+                                                region.move(bodyFnDef.start());
+                                                region.move(regFnControllerIn.start());
+                                                region.setLength(varName.length);
+
+                                                var start = document.positionAt(region.start());
+                                                var end = document.positionAt(region.end());
+                                                var range = new vscode.Range(start, end);
+                                                var message = 'referência a variável '+content.substring(region.start(), region.end())+' não definida!';
+                                                var severity = vscode.DiagnosticSeverity.Warning;
+
+                                                collection.push(new vscode.Diagnostic(range, message, severity));
                                             }
                                         }
-
-                                        for (var idx = 0; idx < variaveisGlobais.length; idx++) {
-                                            if (variaveisGlobais[idx] == varName) {
-                                                found = true;
-                                                break;
-                                            }
-                                        }
-
-                                        if (!found) {
-                                            var region = new Region(varIndex, varIndex);
-                                            region.move(bodyFnDef.start());
-                                            region.move(regFnControllerIn.start());
-                                            region.setLength(varName.length);
-
-                                            var start = document.positionAt(region.start());
-                                            var end = document.positionAt(region.end());
-                                            var range = new vscode.Range(start, end);
-                                            var message = 'referência a variável '+content.substring(region.start(), region.end())+' não definida!';
-                                            var severity = vscode.DiagnosticSeverity.Warning;
-
-                                            collection.push(new vscode.Diagnostic(range, message, severity));
-                                        }
+                                        
+                                        regexRefVar.lastIndex = matchRefVar.index + matchRefVar[0].length - 1;
                                     }
 
                                     // regexFnSign.lastIndex = bodyFnDef.end();

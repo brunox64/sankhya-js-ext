@@ -143,6 +143,7 @@ export default class StringUtil {
 		var delim = '"';
 		var delim1 = '"';
 		var delim2 = '\'';
+		var delim3 = '`';
 		
 		var escape = '\\';
 		var part;
@@ -150,7 +151,7 @@ export default class StringUtil {
 		for (; index < source.length; index++) {
 			part = source.charAt(index);
 			
-			if (start == -1 && part != delim1 && part != delim2) {
+			if (start == -1 && part != delim1 && part != delim2 && part != delim3) {
 				if (skipper.skip(source, index)) {
 					index = skipper.nextIndex();
 					index--;
@@ -163,7 +164,7 @@ export default class StringUtil {
 				continue;
 			}
 			
-			if (part == delim1 || part == delim2) {
+			if (part == delim1 || part == delim2 || part == delim3) {
 				if (start == -1) {
 					start = index;
 					delim = part;
@@ -187,6 +188,10 @@ export default class StringUtil {
 		
 		if (open == '"' || close == '"') {
 			throw new Error("open ou close não pode ser aspas duplas");
+		}
+
+		if (open == '`' || close == '`') {
+			throw new Error("open ou close não pode ser acento grave");
 		}
 
 		if (open.length > 1 || close.length > 1) {

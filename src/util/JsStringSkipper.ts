@@ -17,7 +17,7 @@ export default class JsStringSkipper implements Skipper {
 		
 		this.part = source.charAt(index);
 		
-		if (this.part == '"' || this.part == '\'') {
+		if (this.part == '"' || this.part == '\'' || this.part == '`') {
 			this.reg = StringUtil.getJsRegionString(source, index);
 			
 			if (this.reg != null) {

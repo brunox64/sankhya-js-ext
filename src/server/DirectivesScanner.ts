@@ -1,29 +1,52 @@
-import TagInfo from "./TagInfo";
-import * as vscode from 'vscode';
+import TagInfo from "../model/TagInfo";
 import fs from 'fs';
-import TreeVisitor from "./TreeVisitor";
-import WalkFileTree from "./WalkFileTree";
-import StringUtil from "./StringUtil";
-import Region from "./Region";
-import TagAttribute from "./TagAttribute";
+import TreeVisitor from "../util/TreeVisitor";
+import WalkFileTree from "../util/WalkFileTree";
+import StringUtil from "../util/StringUtil";
+import Region from "../util/Region";
+import TagAttribute from "../model/TagAttribute";
 
-export default class HtmlDirectivesScanner {
+export default class DirectivesScanner {
     public tagByName:Map<string,TagInfo> = new Map();
+    public serviceByName:Map<string,TagInfo> = new Map();
 
-    public scanFolder(folder:vscode.Uri):void {
+    public clear():void {
+        this.tagByName.clear();
+        this.serviceByName.clear();
+    }
+    
+    public scanFolder(folder:string):void {
         this.walkFilesTree(folder);
     }
 
-    public scanFile(file:vscode.Uri):void {
-        if (file.fsPath.endsWith('.js')) {
-            this.collectDirectives(file.fsPath);
+    public scanFile(file:string):void {
+        if (file.endsWith('.js')) {
+            this.collectDirectives(file);
         }
     }
 
-    private walkFilesTree(folder:vscode.Uri) {
+    public onWillDeleteFile(files: string[]) {
+        var scanner = new DirectivesScanner();
+
+        for (var file of files) {
+            scanner.scanFile(file);
+        }
+
+        var self = this;
+
+        scanner.tagByName.forEach((value, key) => {
+            self.tagByName.delete(key);
+        });
+
+        scanner.serviceByName.forEach((value, key) => {
+            self.serviceByName.delete(key);
+        });
+    }
+
+    private walkFilesTree(folder:string) {
 
         var visitor = new TreeVisitor();
-        var walker = new WalkFileTree(folder.fsPath, visitor);
+        var walker = new WalkFileTree(folder, visitor);
         walker.walkFilesTree();
 
         var files = visitor.files;
@@ -35,10 +58,23 @@ export default class HtmlDirectivesScanner {
     }
 
     private collectDirectives(file:string):void {
+        var content = fs.readFileSync(file).toString('utf-8');
+
+        this.collectHtmlTags(content);
+        this.collectServices(content);
+    }
+
+    private collectServices(content:string) {
+        var serviceByName = this.serviceByName;
+
+        var regexService = /a/g;
+        
+    }
+
+    private collectHtmlTags(content:string) {
         var tagByName = this.tagByName;
 
         var regexDirective = /\.\s*directive\s*\(\s*['"]([^'"]+)['"]/g;
-        var content = fs.readFileSync(file).toString('utf-8');
         var match = null;
         var args = null;
 

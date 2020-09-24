@@ -1,25 +1,26 @@
-import * as vscode from 'vscode';
-import JsCommentSkipper from './JsCommentSkipper';
-import JsStringSkipper from './JsStringSkipper';
-import Region from './Region';
-import SkipperChain from './SkipperChain';
-import StringSkipper from './StringSkipper';
-import StringUtil from './StringUtil';
+
+import JsCommentSkipper from '../util/JsCommentSkipper';
+import JsStringSkipper from '../util/JsStringSkipper';
+import Region from '../util/Region';
+import SkipperChain from '../util/SkipperChain';
+import StringSkipper from '../util/StringSkipper';
+import StringUtil from '../util/StringUtil';
+import { Diagnostic, DiagnosticSeverity, Range, Location, DiagnosticRelatedInformation } from 'vscode-languageserver';
+import { TextDocument } from 'vscode-languageserver-textdocument';
 
 export default class JsDiagnosticScanner {
     
-    public scan(document:vscode.TextDocument, diagnosticColl:vscode.DiagnosticCollection):void {
+    public scan(document:TextDocument, collection:Diagnostic[]):void {
         
-        if (document.languageId == 'javascript' && document.uri.fsPath.endsWith('.js')) {
+        if (document.languageId == 'javascript' && document.uri.endsWith('.js')) {
 
             var excludedWords:string[] = [
                 'if','else','case','switch','true','false','while','for','in','of','instanceof','type','var','let','const','break','continue',
                 'throw','function','new','undefined','null','return','async','await','delete','this','isNaN',
                 'Date','Array','Object','String','Number','Boolean','JSON','setInterval','setTimeout','window','document',
-                'parseInt','parseFloat','$','jQuery','angular','default','Error','Promise','console','RegExp','Math'
+                'parseInt','parseFloat','$','jQuery','angular','default','Error','Promise','console','RegExp','Math','XMLHttpRequest'
             ];
 
-            var collection = new Array<vscode.Diagnostic>();
             var content = document.getText();
             
             var regexController = /\)\s*\.\s*controller\s*\(/g;
@@ -110,11 +111,21 @@ export default class JsDiagnosticScanner {
 
                                     var start = document.positionAt(region.start());
                                     var end = document.positionAt(region.end());
-                                    var range = new vscode.Range(start, end);
+                                    var range = {start, end};
                                     var message = 'referência a propriedade '+content.substring(region.start(), region.end())+' não definida!';
-                                    var severity = vscode.DiagnosticSeverity.Warning;
+                                    var severity = DiagnosticSeverity.Warning;
 
-                                    collection.push(new vscode.Diagnostic(range, message, severity));
+                                    var relatedInformation:DiagnosticRelatedInformation[] = [ 
+                                        { 
+                                            location: { 
+                                                uri: document.uri, 
+                                                range: range 
+                                            }, 
+                                            message: message
+                                        } 
+                                    ];
+
+                                    collection.push({range,message,severity,relatedInformation});
                                 }
                             }
 
@@ -338,11 +349,21 @@ export default class JsDiagnosticScanner {
 
                                                 var start = document.positionAt(region.start());
                                                 var end = document.positionAt(region.end());
-                                                var range = new vscode.Range(start, end);
+                                                var range = {start, end};
                                                 var message = 'referência a variável '+content.substring(region.start(), region.end())+' não definida!';
-                                                var severity = vscode.DiagnosticSeverity.Warning;
+                                                var severity = DiagnosticSeverity.Warning;
 
-                                                collection.push(new vscode.Diagnostic(range, message, severity));
+                                                var relatedInformation:DiagnosticRelatedInformation[] = [ 
+                                                    { 
+                                                        location: { 
+                                                            uri: document.uri, 
+                                                            range: range 
+                                                        }, 
+                                                        message: message
+                                                    } 
+                                                ];
+                                                
+                                                collection.push({range,message,severity,relatedInformation});
                                             }
                                         }
                                         
@@ -357,8 +378,7 @@ export default class JsDiagnosticScanner {
                 }
             }
 
-
-            diagnosticColl.set(document.uri, collection);
+            // diagnosticColl.push(diagnostic);
         }
     }
 }

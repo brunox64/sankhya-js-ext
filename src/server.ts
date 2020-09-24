@@ -41,8 +41,8 @@ function main() {
     // Create a simple text document manager.
     let documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
 
-    var jsDiagnosticScanner = new JsDiagnosticScanner();
     var directivesScanner = new DirectivesScanner();
+    var jsDiagnosticScanner = new JsDiagnosticScanner(directivesScanner);
 
     function scanAllKnownFiles() {
         
@@ -55,9 +55,7 @@ function main() {
             });
 
             for (var document of documents.all()) {
-                var diagnosticColl: Diagnostic[] = [];
-                jsDiagnosticScanner.scan(document, diagnosticColl);
-                connection.sendDiagnostics({ uri: document.uri, diagnostics: diagnosticColl });
+                jsDiagnosticScanner.scan(document, documents, connection);
             } 
         });
 
@@ -102,18 +100,12 @@ function main() {
 
     documents.onDidOpen(event => {
         directivesScanner.scanFile(new URL(event.document.uri).pathname);
-
-        var diagnosticColl: Diagnostic[] = [];
-        jsDiagnosticScanner.scan(event.document, diagnosticColl);
-        connection.sendDiagnostics({ uri: event.document.uri, diagnostics: diagnosticColl });
+        jsDiagnosticScanner.scan(event.document, documents, connection);
     });
 
     documents.onDidSave(event => {
         directivesScanner.scanFile(new URL(event.document.uri).pathname);
-        
-        var diagnosticColl: Diagnostic[] = [];
-        jsDiagnosticScanner.scan(event.document, diagnosticColl);
-        connection.sendDiagnostics({ uri: event.document.uri, diagnostics: diagnosticColl });
+        jsDiagnosticScanner.scan(event.document, documents, connection);
     });
 
 

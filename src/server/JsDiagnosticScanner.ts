@@ -345,17 +345,7 @@ export default class JsDiagnosticScanner {
                             var message = 'referência a variável '+content.substring(region.start(), region.end())+' não definida!';
                             var severity = DiagnosticSeverity.Warning;
 
-                            var relatedInformation:DiagnosticRelatedInformation[] = [ 
-                                { 
-                                    location: { 
-                                        uri: document.uri, 
-                                        range: range 
-                                    }, 
-                                    message: message
-                                } 
-                            ];
-                            
-                            collection.push({range,message,severity,relatedInformation});
+                            collection.push({range,message,severity});
                         }
                     }
                     
@@ -407,17 +397,7 @@ export default class JsDiagnosticScanner {
                 var message = 'referência a propriedade '+content.substring(region.start(), region.end())+' não definida!';
                 var severity = DiagnosticSeverity.Warning;
 
-                var relatedInformation:DiagnosticRelatedInformation[] = [ 
-                    { 
-                        location: { 
-                            uri: document.uri, 
-                            range: range 
-                        }, 
-                        message: message
-                    } 
-                ];
-
-                collection.push({range,message,severity,relatedInformation});
+                collection.push({range,message,severity});
             }
         }
     }
@@ -561,20 +541,31 @@ export default class JsDiagnosticScanner {
         var documents = this.documents;
         var document = this.document;
 
-        if (document.uri.endsWith(".controller.js") || document.uri.endsWith(".tpl.html")) {
+        if (document.uri.endsWith(".js") || document.uri.endsWith(".html")) {
             var docHtml:TextDocument|undefined;
             var contentJs:string|undefined;
 
-            if (document.languageId == 'javascript' && document.uri.endsWith('.js')) {
+            if (document.uri.endsWith('.js')) {
                 contentJs = this.document.getText();
-                docHtml = documents.get(document.uri.replace(/\.controller\.js$/g,'.tpl.html'));
+
+                docHtml = documents.get(document.uri.replace(/(\.controller)?\.js$/g,'.tpl.html'));
+
+                if (!docHtml) {
+                    docHtml = documents.get(document.uri.replace(/(\.controller)?\.js$/g,'.html'));
+                }
             } else {
                 docHtml = this.document;
 
-                var pathFileJs = new URL(docHtml.uri.replace(/\.tpl\.html$/g, '.controller.js')).pathname;
+                var pathFileJs = new URL(docHtml.uri.replace(/(\.tpl)?\.html$/g, '.controller.js')).pathname;
 
                 if (fs.existsSync(pathFileJs) && fs.statSync(pathFileJs).isFile()) {
                     contentJs = fs.readFileSync(pathFileJs).toString('utf-8');
+                } else {
+                    pathFileJs = new URL(docHtml.uri.replace(/(\.tpl)?\.html$/g, '.js')).pathname;
+
+                    if (fs.existsSync(pathFileJs) && fs.statSync(pathFileJs).isFile()) {
+                        contentJs = fs.readFileSync(pathFileJs).toString('utf-8');
+                    }
                 }
             }
 
@@ -617,7 +608,7 @@ export default class JsDiagnosticScanner {
                     'parseInt','parseFloat','$','jQuery','angular','default','Error','Promise','console','RegExp','Math','XMLHttpRequest'
                 ];
 
-                var regexTagDef = /<\s*([a-zA-Z_\-]+)([^/>]+)>/g;
+                var regexTagDef = /<\s*([a-zA-Z_\-]+)([^>]+)>/g;
                 var matchTagDef:RegExpExecArray|null = null;
                 while (matchTagDef = regexTagDef.exec(contentHtml)) {
                     var tagName = matchTagDef[1];

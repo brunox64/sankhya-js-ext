@@ -114,7 +114,7 @@ export default class JsDiagnosticScanner {
 
         var excludedWords:string[] = [
             'if','else','case','switch','true','false','while','for','in','of','instanceof','type','var','let','const','break','continue',
-            'throw','function','new','undefined','null','return','async','await','delete','this','isNaN',
+            'throw','function','new','undefined','null','return','async','await','delete','this','isNaN','try','catch',
             'Date','Array','Object','String','Number','Boolean','JSON','setInterval','setTimeout','window','document',
             'parseInt','parseFloat','$','jQuery','angular','default','Error','Promise','console','RegExp','Math','XMLHttpRequest'
         ];
@@ -603,7 +603,7 @@ export default class JsDiagnosticScanner {
 
                 var excludedWords:string[] = [
                     'if','else','case','switch','true','false','while','for','in','of','instanceof','type','var','let','const','break','continue',
-                    'throw','function','new','undefined','null','return','async','await','delete','this','isNaN',
+                    'throw','function','new','undefined','null','return','async','await','delete','this','isNaN','try','catch',
                     'Date','Array','Object','String','Number','Boolean','JSON','setInterval','setTimeout','window','document',
                     'parseInt','parseFloat','$','jQuery','angular','default','Error','Promise','console','RegExp','Math','XMLHttpRequest'
                 ];

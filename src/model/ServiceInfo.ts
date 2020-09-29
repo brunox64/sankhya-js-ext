@@ -1,7 +1,7 @@
-import MethodInfo from "../util/MethodInfo";
+import MethodInfo from "./MethodInfo";
 
 export default class ServiceInfo {
-    constructor(
+    public constructor(
         public name:string,
         public methods:MethodInfo[]
     ){}

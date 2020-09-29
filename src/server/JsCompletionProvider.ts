@@ -2,8 +2,14 @@
 
 import { CompletionItem, CompletionItemKind, Position, TextDocumentPositionParams } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
+import ServiceInfo from '../model/ServiceInfo';
+import DirectivesScanner from './DirectivesScanner';
 
 export default class JsCompletionProvider {
+
+    public constructor(
+        private directivesScanner:DirectivesScanner
+    ){}
 
     public provideCompletionItems(
         document: TextDocument, 
@@ -34,6 +40,24 @@ export default class JsCompletionProvider {
                     while (matchVariable = regexVariable.exec(content)) {
                         varName = matchVariable[2];
                         uniqueVarNames.add(varName);
+                    }
+                } else {
+                    var regexEndService = /([a-zA-Z\$_][a-zA-Z0-9_\$]*)\s*\.\s*$/g;
+                    var matchEndService = regexEndService.exec(leftSideLine);
+
+                    if (matchEndService) {
+                        var serviceName:string = matchEndService[1];
+                        var serviceInfo:ServiceInfo|undefined = this.directivesScanner.serviceByName.get(serviceName);
+
+                        if (serviceInfo) {
+                            serviceInfo.methods.forEach(m => {
+                                completionList.push({
+                                    label: m.name,
+                                    kind: CompletionItemKind.Method,
+                                    documentation: m.doc
+                                })
+                            });
+                        }
                     }
                 }
 

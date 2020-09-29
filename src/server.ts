@@ -109,7 +109,7 @@ function main() {
     });
 
 
-    var jsCompletionProvider = new JsCompletionProvider();
+    var jsCompletionProvider = new JsCompletionProvider(directivesScanner);
     var jsSymbolProvider = new JsDocumentSymbolProvider();
     var jsDefinitionProvider = new JsDefinitionProvider();
     var asSymbolProvider = new AsDocumentSymbolProvider();

@@ -31,8 +31,10 @@ export default class HtmlCompletionProvider  {
             var tagLocalizada = false;
 
             if (matchTag == null) {
+                // buscando de traz pra frente linha a linha a ocorrência da tag
                 for (var index = position.line - 1; index >= 0; index--) {
                     content = lines[index] + content;
+                    regexTag.lastIndex = 0;
                     matchTag = regexTag.exec(content);
 
                     if (matchTag != null) {
@@ -41,10 +43,11 @@ export default class HtmlCompletionProvider  {
                     }
                 }
             } else {
-                tagLocalizada = true;
+                tagLocalizada = true;// abertura de tag na mesma linha do cursor
             }
 
             if (tagLocalizada) {
+                // posicionar na última ocorrência
                 var match = null;
                 while ((match = regexTag.exec(content)) != null) {
                     matchTag = match;
@@ -54,7 +57,10 @@ export default class HtmlCompletionProvider  {
                 var strSkipper = new StringSkipper(content, new Region(matchTag!.index, content.length));
                 var strSkipped = strSkipper.skip(skipper);
 
+                // verificar se partes da tag estão incompletas
                 for (var index of strSkipped) {
+                    // se há um sinal > é por que não estão posicionado na mesma tag que o regex capturou
+                    // se o skipper não conseguiu pular aspas duplas é por que estão desbalanceadas
                     if (content.charAt(index) == '>' || content.charAt(index) == '"') {
                         tagLocalizada = false;
                         break;

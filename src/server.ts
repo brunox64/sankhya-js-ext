@@ -1,5 +1,6 @@
 
 import fs from 'fs';
+import url from 'url';
 
 import {
     createConnection,
@@ -48,9 +49,9 @@ function main() {
         
         (connection.workspace.getWorkspaceFolders() || Promise.resolve()) .then(folders => {
             (folders || []).forEach(wf => {
-                var folder = new URL(wf.uri);
-                if (fs.existsSync(folder.pathname) && fs.statSync(folder.pathname).isDirectory()) {
-                    directivesScanner.scanFolder(folder.pathname);
+                var folder = url.fileURLToPath(wf.uri);
+                if (fs.existsSync(folder) && fs.statSync(folder).isDirectory()) {
+                    directivesScanner.scanFolder(wf.uri);
                 }
             });
 
@@ -99,12 +100,12 @@ function main() {
     });
 
     documents.onDidOpen(event => {
-        directivesScanner.scanFile(new URL(event.document.uri).pathname);
+        directivesScanner.scanFile(event.document.uri);
         jsDiagnosticScanner.scan(event.document, documents, connection);
     });
 
     documents.onDidSave(event => {
-        directivesScanner.scanFile(new URL(event.document.uri).pathname);
+        directivesScanner.scanFile(event.document.uri);
         jsDiagnosticScanner.scan(event.document, documents, connection);
     });
 

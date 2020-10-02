@@ -1,5 +1,6 @@
 import TagInfo from "../model/TagInfo";
 import fs from 'fs';
+import url from 'url';
 import TreeVisitor from "../util/TreeVisitor";
 import WalkFileTree from "../util/WalkFileTree";
 import StringUtil from "../util/StringUtil";
@@ -21,13 +22,14 @@ export default class DirectivesScanner {
         this.serviceByName.clear();
     }
     
-    public scanFolder(folder:string):void {
-        this.walkFilesTree(folder);
+    public scanFolder(folderUri:string):void {
+        this.walkFilesTree(url.fileURLToPath(folderUri));
     }
 
-    public scanFile(file:string):void {
-        if (file.endsWith('.js')) {
-            this.collectDirectives(file);
+    public scanFile(fileUri:string):void {
+        var filePath = url.fileURLToPath(fileUri);
+        if (filePath.endsWith('.js')) {
+            this.collectDirectives(filePath);
         }
     }
 
@@ -49,22 +51,22 @@ export default class DirectivesScanner {
         });
     }
 
-    private walkFilesTree(folder:string) {
+    private walkFilesTree(folderPath:string) {
 
         var visitor = new TreeVisitor();
-        var walker = new WalkFileTree(folder, visitor);
+        var walker = new WalkFileTree(folderPath, visitor);
         walker.walkFilesTree();
 
         var files = visitor.files;
         var self = this;
 
-        for (var file of files) {
-            self.collectDirectives(file);
+        for (var filePath of files) {
+            self.collectDirectives(filePath);
         }
     }
 
-    private collectDirectives(file:string):void {
-        var content = fs.readFileSync(file).toString('utf-8');
+    private collectDirectives(filePath:string):void {
+        var content = fs.readFileSync(filePath).toString('utf-8');
 
         this.collectHtmlTags(content);
         this.collectServices(content);

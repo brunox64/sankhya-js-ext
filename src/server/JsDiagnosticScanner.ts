@@ -10,6 +10,7 @@ import { TextDocument } from 'vscode-languageserver-textdocument';
 import Skipper from '../util/Skipper';
 import DirectivesScanner from './DirectivesScanner';
 import fs from 'fs';
+import url from 'url';
 import JsCallSkipper from '../util/JsCallSkipper';
 import JsArraySkipper from '../util/JsArraySkipper';
 import JsObjectSkipper from '../util/JsObjectSkipper';
@@ -556,12 +557,12 @@ export default class JsDiagnosticScanner {
             } else {
                 docHtml = this.document;
 
-                var pathFileJs = new URL(docHtml.uri.replace(/(\.tpl)?\.html$/g, '.controller.js')).pathname;
+                var pathFileJs = url.fileURLToPath(docHtml.uri.replace(/(\.tpl)?\.html$/g, '.controller.js'));
 
                 if (fs.existsSync(pathFileJs) && fs.statSync(pathFileJs).isFile()) {
                     contentJs = fs.readFileSync(pathFileJs).toString('utf-8');
                 } else {
-                    pathFileJs = new URL(docHtml.uri.replace(/(\.tpl)?\.html$/g, '.js')).pathname;
+                    pathFileJs = url.fileURLToPath(docHtml.uri.replace(/(\.tpl)?\.html$/g, '.js'));
 
                     if (fs.existsSync(pathFileJs) && fs.statSync(pathFileJs).isFile()) {
                         contentJs = fs.readFileSync(pathFileJs).toString('utf-8');

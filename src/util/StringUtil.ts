@@ -140,18 +140,19 @@ export default class StringUtil {
 		
 		var start = -1;
 		
-		var delim = '"';
 		var delim1 = '"';
-		var delim2 = '\'';
+		var delim2 = "'";
 		var delim3 = '`';
+		var delim4 = '/';
 		
 		var escape = '\\';
+		var delim;
 		var part;
 		
 		for (; index < source.length; index++) {
 			part = source.charAt(index);
 			
-			if (start == -1 && part != delim1 && part != delim2 && part != delim3) {
+			if (start == -1) {
 				if (skipper.skip(source, index)) {
 					index = skipper.nextIndex();
 					index--;
@@ -164,8 +165,17 @@ export default class StringUtil {
 				continue;
 			}
 			
-			if (part == delim1 || part == delim2 || part == delim3) {
+			if (part == delim1 || part == delim2 || part == delim3 || part == delim4) {
 				if (start == -1) {
+					if (part == delim4) {
+						// validar se é realmente uma regex
+						var regexExprDivision = /[a-zA-Z0-9\$_\)][ ]*\/$/g;
+	
+						if (regexExprDivision.test(source.substring(0, index + 1))) {
+							continue;// é uma divisão
+						}
+					}
+
 					start = index;
 					delim = part;
 				} else if (part == delim) {
@@ -194,6 +204,10 @@ export default class StringUtil {
 			throw new Error("open ou close não pode ser acento grave");
 		}
 
+		if (open == '/' || close == '/') {
+			throw new Error("open ou close não pode ser barra para direita");
+		}
+
 		if (open.length > 1 || close.length > 1) {
 			throw new Error("open ou close não pode ser maior que 1");
 		}
@@ -214,7 +228,7 @@ export default class StringUtil {
 		
 		for (; index < source.length; index++) {
 			part = source.charAt(index);
-			
+
 			if (skipper.skip(source, index)) {
 				index = skipper.nextIndex();
 				index--;
@@ -223,12 +237,17 @@ export default class StringUtil {
 			
 			if (part == open || part == close) {
 				if (part == open) {
-					if (start == -1) start = index;
+					if (start == -1) {
+						start = index;
+					}
+					
 					count++;
 				} else if (start > -1) {
 					count--;
 					
-					if (count == 0) return new Region(start, index + 1);
+					if (count == 0) {
+						return new Region(start, index + 1);
+					}
 				}
 			}
 		}

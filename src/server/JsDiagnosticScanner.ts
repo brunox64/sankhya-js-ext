@@ -56,7 +56,7 @@ export default class JsDiagnosticScanner {
 
     private analizeJsController():void {
         var document = this.document;
-        var content = this.content = document.getText();
+        var content = this.content = fs.readFileSync(url.fileURLToPath(document.uri)).toString('utf-8');
             
         var regexController = /\)\s*\.\s*controller\s*\(/g;
         var matchController = regexController.exec(content);
@@ -119,6 +119,15 @@ export default class JsDiagnosticScanner {
             'Date','Array','Object','String','Number','Boolean','JSON','setInterval','setTimeout','window','document',
             'parseInt','parseFloat','$','jQuery','angular','default','Error','Promise','console','RegExp','Math','XMLHttpRequest'
         ];
+
+        // salvar uma foto do arquivo skippado
+        var dataExpr = '';
+        for (var index of strSkipped) {
+            dataExpr += controller.charAt(index);
+        }
+        fs.writeFileSync('/Users/brunomota/Documents/sankhyawexterno/dump-orig-content.txt', content);
+        fs.writeFileSync('/Users/brunomota/Documents/sankhyawexterno/dump-orig.txt', controller);
+        fs.writeFileSync('/Users/brunomota/Documents/sankhyawexterno/dump.txt', dataExpr);
 
         // verificar se alguma variável dentro da function não está definida
         var variaveisGlobais:string[] = [];
@@ -286,8 +295,7 @@ export default class JsDiagnosticScanner {
                         if (fnStrSkipped.indexOf(idx) == -1) {
                             pularRefVar = true;
 
-                            idx++;
-                            regexRefVar.lastIndex = idx;
+                            regexRefVar.lastIndex = ++idx;
                             while (regexRefVar.lastIndex < fnContent.length && fnStrSkipped.indexOf(regexRefVar.lastIndex) == -1) {
                                 regexRefVar.lastIndex++;
                             }
@@ -547,7 +555,7 @@ export default class JsDiagnosticScanner {
             var contentJs:string|undefined;
 
             if (document.uri.endsWith('.js')) {
-                contentJs = this.document.getText();
+                contentJs = fs.readFileSync(url.fileURLToPath(document.uri)).toString('utf-8');
 
                 docHtml = documents.get(document.uri.replace(/(\.controller)?\.js$/g,'.tpl.html'));
 
@@ -579,7 +587,7 @@ export default class JsDiagnosticScanner {
                     this.collection.set(docHtml.uri, collection);
                 }
 
-                var contentHtml = docHtml.getText();
+                var contentHtml = fs.readFileSync(url.fileURLToPath(docHtml.uri)).toString('utf-8');
 
                 var variaveisController:string[] = [];
                 var variaveisScope:string[] = [];

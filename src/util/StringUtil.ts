@@ -133,6 +133,48 @@ export default class StringUtil {
 		
 		return -1;
 	}
+
+	public static getJsRegionStringDeprecated(source:string, index:number):Region|null {
+        
+        var skipper = new JsCommentSkipper();
+		
+		var start = -1;
+		
+		var delim1 = '"';
+		var delim2 = "'";
+		
+		var escape = '\\';
+		var delim;
+		var part;
+		
+		for (; index < source.length; index++) {
+			part = source.charAt(index);
+			
+			if (start == -1) {
+				if (skipper.skip(source, index)) {
+					index = skipper.nextIndex();
+					index--;
+					continue;
+				}
+			}
+			
+			if (start > -1 && part == escape) {
+				index++;
+				continue;
+			}
+			
+			if (part == delim1 || part == delim2) {
+				if (start == -1) {
+					start = index;
+					delim = part;
+				} else if (part == delim) {
+					return new Region(start, index + 1);
+				}
+			}
+		}
+
+		return null;
+	}
     
     public static getJsRegionString(source:string, index:number):Region|null {
         

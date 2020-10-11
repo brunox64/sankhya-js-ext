@@ -134,7 +134,7 @@ export default class StringUtil {
 		return -1;
 	}
 
-	public static getJsRegionStringDeprecated(source:string, index:number):Region|null {
+	public static getJsRegionStringOld(source:string, index:number):Region|null {
         
         var skipper = new JsCommentSkipper();
 		
@@ -142,6 +142,7 @@ export default class StringUtil {
 		
 		var delim1 = '"';
 		var delim2 = "'";
+		var delim3 = "`";
 		
 		var escape = '\\';
 		var delim;
@@ -150,7 +151,7 @@ export default class StringUtil {
 		for (; index < source.length; index++) {
 			part = source.charAt(index);
 			
-			if (start == -1) {
+			if (start == -1 && part != delim1 && part != delim2 && part != delim3) {
 				if (skipper.skip(source, index)) {
 					index = skipper.nextIndex();
 					index--;
@@ -163,7 +164,7 @@ export default class StringUtil {
 				continue;
 			}
 			
-			if (part == delim1 || part == delim2) {
+			if (part == delim1 || part == delim2 || part == delim3) {
 				if (start == -1) {
 					start = index;
 					delim = part;

@@ -7,7 +7,6 @@ export default class JsCommentSkipper implements Skipper {
 	private comentEnd = "*/";
 	private lineEnd = "\n";
 	
-	private part!:string;
 	private next!:number;
 	
 	public constructor() {
@@ -17,9 +16,9 @@ export default class JsCommentSkipper implements Skipper {
 	public skip(source:string, index:number):boolean {
 		this.next = -1;
 		
-		this.part = source.charAt(index);
+		var part = source.charAt(index);
 		
-		if (this.part == '/' 
+		if (part == '/' 
 				&& index + this.comentStart.length <= source.length 
 				&& StringUtil.strEquals(source, index, index + this.comentStart.length, this.comentStart, 0, this.comentStart.length)) {
 			
@@ -29,7 +28,7 @@ export default class JsCommentSkipper implements Skipper {
 				this.next = end + this.comentEnd.length;
 				return true;
 			}
-		} else if (this.part == '/' 
+		} else if (part == '/' 
 				&& index + this.comentLine.length <= source.length 
 				&& StringUtil.strEquals(source, index, index + this.comentLine.length, this.comentLine, 0, this.comentLine.length)) {
 			

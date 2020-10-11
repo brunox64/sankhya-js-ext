@@ -13,7 +13,7 @@ export default class JsObjectSkipper implements Skipper {
         if (part == '{') {
 			reg = StringUtil.getJsRegion(source, index, '{', '}');
 			
-			if (reg != null) {
+			if (reg != null && reg.start() == index) {
 				this.next = reg.end();
 				return true;
 			}

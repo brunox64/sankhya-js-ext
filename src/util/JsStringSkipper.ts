@@ -4,9 +4,7 @@ import StringUtil from './StringUtil';
 import Region from './Region';
 
 export default class JsStringSkipper implements Skipper {
-    private reg!:Region|null;
-	private part!:string;
-	private next!:number;
+    private next!:number;
 	
 	public constructor() {
 		this.next = -1;
@@ -15,13 +13,13 @@ export default class JsStringSkipper implements Skipper {
 	public skip(source:string, index:number):boolean {
 		this.next = -1;
 		
-		this.part = source.charAt(index);
+		var part:string = source.charAt(index);
 		
-		if (this.part == '"' || this.part == "'" || this.part == '`' || this.part == '/') {
-			this.reg = StringUtil.getJsRegionString(source, index);
+		if (part == '"' || part == "'" || part == '`' || part == '/') {
+			var reg:Region|null = StringUtil.getJsRegionString(source, index);
 			
-			if (this.reg != null) {
-				this.next = this.reg.end();
+			if (reg != null && reg.start() == index) {
+				this.next = reg.end();
 				return true;
 			}
 		}

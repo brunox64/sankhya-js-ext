@@ -56,7 +56,7 @@ export default class JsDiagnosticScanner {
 
     private analizeJsController():void {
         var document = this.document;
-        var content = this.content = fs.readFileSync(url.fileURLToPath(document.uri)).toString('utf-8');
+        var content = this.content = document.getText();
             
         var regexController = /\)\s*\.\s*controller\s*\(/g;
         var matchController = regexController.exec(content);
@@ -120,14 +120,14 @@ export default class JsDiagnosticScanner {
             'parseInt','parseFloat','$','jQuery','angular','default','Error','Promise','console','RegExp','Math','XMLHttpRequest'
         ];
 
-        // salvar uma foto do arquivo skippado
-        var dataExpr = '';
-        for (var index of strSkipped) {
-            dataExpr += controller.charAt(index);
-        }
-        fs.writeFileSync('/Users/brunomota/Documents/sankhyawexterno/dump-orig-content.txt', content);
-        fs.writeFileSync('/Users/brunomota/Documents/sankhyawexterno/dump-orig.txt', controller);
-        fs.writeFileSync('/Users/brunomota/Documents/sankhyawexterno/dump.txt', dataExpr);
+        // salvar uma foto do arquivo skippado (para debugger skippers)
+        // var dataExpr = '';
+        // for (var index of strSkipped) {
+        //     dataExpr += controller.charAt(index);
+        // }
+        // fs.writeFileSync('/Users/brunomota/Documents/sankhyawexterno/dump-orig-content.txt', content);
+        // fs.writeFileSync('/Users/brunomota/Documents/sankhyawexterno/dump-orig.txt', controller);
+        // fs.writeFileSync('/Users/brunomota/Documents/sankhyawexterno/dump.txt', dataExpr);
 
         // verificar se alguma variável dentro da function não está definida
         var variaveisGlobais:string[] = [];
@@ -555,7 +555,7 @@ export default class JsDiagnosticScanner {
             var contentJs:string|undefined;
 
             if (document.uri.endsWith('.js')) {
-                contentJs = fs.readFileSync(url.fileURLToPath(document.uri)).toString('utf-8');
+                contentJs = document.getText();
 
                 docHtml = documents.get(document.uri.replace(/(\.controller)?\.js$/g,'.tpl.html'));
 
@@ -587,7 +587,7 @@ export default class JsDiagnosticScanner {
                     this.collection.set(docHtml.uri, collection);
                 }
 
-                var contentHtml = fs.readFileSync(url.fileURLToPath(docHtml.uri)).toString('utf-8');
+                var contentHtml = docHtml.getText();
 
                 var variaveisController:string[] = [];
                 var variaveisScope:string[] = [];
